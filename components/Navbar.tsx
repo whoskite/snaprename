@@ -22,6 +22,33 @@ const iconAnimation = {
   tap: { scale: 0.95 }
 }
 
+const farcasterAnimation = {
+  initial: { 
+    scale: 1,
+  },
+  hover: { 
+    scale: 1.1,
+    transition: {
+      type: "spring",
+      stiffness: 400,
+      damping: 10
+    }
+  },
+  tap: { scale: 0.95 }
+}
+
+const iconColorAnimation = {
+  initial: { 
+    fill: "var(--icon-color)",
+  },
+  hover: { 
+    fill: "#5C3A9D",
+    transition: {
+      duration: 0.2
+    }
+  }
+}
+
 export function Navbar() {
   const [showProfile, setShowProfile] = useState(false)
 
@@ -62,14 +89,21 @@ export function Navbar() {
                 initial="initial"
                 whileHover="hover"
                 whileTap="tap"
-                variants={iconAnimation}
+                variants={farcasterAnimation}
                 className="relative"
                 onHoverStart={() => setShowProfile(true)}
                 onHoverEnd={() => setShowProfile(false)}
               >
                 <Button variant="ghost" size="icon" asChild className="rounded-none">
                   <Link href="https://warpcast.com/kite" target="_blank" rel="noreferrer">
-                    <FarcasterIcon className="h-4 w-4" />
+                    <motion.div
+                      initial="initial"
+                      animate="initial"
+                      whileHover="hover"
+                      variants={iconColorAnimation}
+                    >
+                      <FarcasterIcon className="h-4 w-4" />
+                    </motion.div>
                     <span className="sr-only">Farcaster</span>
                   </Link>
                 </Button>

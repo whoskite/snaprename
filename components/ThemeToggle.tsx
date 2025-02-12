@@ -8,25 +8,42 @@ import { motion, AnimatePresence } from "framer-motion"
 
 const moonGlowVariants = {
   initial: {
-    opacity: 0.5,
+    opacity: 0.8,
     scale: 1,
-    filter: "drop-shadow(0 0 0.5rem rgba(253, 224, 71, 0))"
+    filter: "drop-shadow(0 0 0px rgba(253, 224, 71, 0))"
   },
   animate: {
-    opacity: [0.5, 1, 0.5],
-    scale: [1, 1.05, 1],
+    opacity: [0.8, 1, 0.8],
+    scale: [1, 1.02, 1],
     filter: [
-      "drop-shadow(0 0 2px rgba(253, 224, 71, 0.2))",
-      "drop-shadow(0 0 4px rgba(253, 224, 71, 0.4))",
-      "drop-shadow(0 0 2px rgba(253, 224, 71, 0.2))"
+      "drop-shadow(0 0 2px rgba(253, 224, 71, 0.3)) drop-shadow(0 0 4px rgba(234, 179, 8, 0.2))",
+      "drop-shadow(0 0 4px rgba(253, 224, 71, 0.5)) drop-shadow(0 0 8px rgba(234, 179, 8, 0.4))",
+      "drop-shadow(0 0 2px rgba(253, 224, 71, 0.3)) drop-shadow(0 0 4px rgba(234, 179, 8, 0.2))"
     ],
     transition: {
-      duration: 4,
+      duration: 6,
       repeat: Infinity,
-      ease: "easeInOut",
+      ease: [0.4, 0, 0.6, 1],
       times: [0, 0.5, 1]
     }
   }
+}
+
+const sunVariants = {
+  initial: { rotate: 90, opacity: 0 },
+  animate: { 
+    rotate: 0, 
+    opacity: 1,
+    scale: [1, 1.05, 1],
+    transition: {
+      scale: {
+        repeat: Infinity,
+        duration: 8,
+        ease: "easeInOut"
+      }
+    }
+  },
+  exit: { rotate: -90, opacity: 0 }
 }
 
 export function ThemeToggle({ className }: { className?: string }) {
@@ -63,28 +80,30 @@ export function ThemeToggle({ className }: { className?: string }) {
                 variants={moonGlowVariants}
                 initial="initial"
                 animate="animate"
-                className="text-yellow-200/90"
+                className="text-yellow-100/90 relative"
               >
-                <Moon className="h-[1.2rem] w-[1.2rem]" />
+                <motion.span
+                  className="absolute inset-0 rounded-full bg-yellow-100/20 blur-sm"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.3, 0.5, 0.3]
+                  }}
+                  transition={{
+                    duration: 6,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                <Moon className="h-[1.2rem] w-[1.2rem] relative z-10" />
               </motion.div>
             </motion.div>
           ) : (
             <motion.div
               key="sun"
-              initial={{ rotate: 90, opacity: 0 }}
-              animate={{ 
-                rotate: 0, 
-                opacity: 1,
-                scale: [1, 1.1, 1],
-                transition: {
-                  scale: {
-                    repeat: Infinity,
-                    duration: 6,
-                    ease: "easeInOut"
-                  }
-                }
-              }}
-              exit={{ rotate: -90, opacity: 0 }}
+              variants={sunVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
               transition={{ duration: 0.4 }}
               className="text-yellow-500/90"
             >
