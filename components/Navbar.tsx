@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { motion } from "framer-motion"
 import { FarcasterIcon } from "@/components/icons/FarcasterIcon"
+import { useState } from "react"
+import { ProfilePopover } from "@/components/ProfilePopover"
 
 const iconAnimation = {
   initial: { scale: 1 },
@@ -21,6 +23,8 @@ const iconAnimation = {
 }
 
 export function Navbar() {
+  const [showProfile, setShowProfile] = useState(false)
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center">
@@ -60,6 +64,8 @@ export function Navbar() {
                 whileTap="tap"
                 variants={iconAnimation}
                 className="relative"
+                onHoverStart={() => setShowProfile(true)}
+                onHoverEnd={() => setShowProfile(false)}
               >
                 <Button variant="ghost" size="icon" asChild className="rounded-none">
                   <Link href="https://warpcast.com/kite" target="_blank" rel="noreferrer">
@@ -67,6 +73,7 @@ export function Navbar() {
                     <span className="sr-only">Farcaster</span>
                   </Link>
                 </Button>
+                <ProfilePopover isVisible={showProfile} />
               </motion.div>
 
               <div className="relative">
