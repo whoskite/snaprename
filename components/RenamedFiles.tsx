@@ -1,12 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileIcon, ChevronRightIcon, Trash2 } from "lucide-react"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { motion, AnimatePresence } from "framer-motion"
-import Image from "next/image"
+import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { motion } from "framer-motion"
+import { Trash2 } from "lucide-react"
+import Image from "next/image"
 
 type RenamedFile = {
   originalName: string
@@ -22,12 +20,6 @@ export default function RenamedFiles({
   renamedFiles: RenamedFile[]
   onDelete: (index: number) => void
 }) {
-  const [openItems, setOpenItems] = useState<number[]>([])
-
-  const toggleItem = (index: number) => {
-    setOpenItems((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]))
-  }
-
   if (renamedFiles.length === 0) return null
 
   return (
