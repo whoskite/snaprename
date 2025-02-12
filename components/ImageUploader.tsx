@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { UploadIcon, DownloadIcon } from "lucide-react"
+import { UploadIcon, DownloadIcon, Trash2 } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { motion, AnimatePresence } from "framer-motion"
 import JSZip from "jszip"
@@ -19,6 +19,7 @@ type RenamedFile = {
   originalName: string
   newName: string
   size: number
+  url?: string
 }
 
 const useMotionDropzone = (onDrop: (acceptedFiles: File[]) => void) => {
@@ -81,7 +82,12 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
     files.forEach((file, index) => {
       const newFileName = generateFileName(file, index)
       zip.file(newFileName, file)
-      renamedFiles.push({ originalName: file.name, newName: newFileName, size: file.size })
+      renamedFiles.push({ 
+        originalName: file.name, 
+        newName: newFileName, 
+        size: file.size,
+        url: URL.createObjectURL(file)
+      })
     })
 
     try {
@@ -102,14 +108,28 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
 
   const handleSingleDownload = (file: File, index: number) => {
     const newFileName = generateFileName(file, index)
+    const url = URL.createObjectURL(file)
     const link = document.createElement("a")
-    link.href = URL.createObjectURL(file)
+    link.href = url
     link.download = newFileName
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    URL.revokeObjectURL(link.href)
-    onFilesRenamed([{ originalName: file.name, newName: newFileName, size: file.size }])
+    
+    onFilesRenamed([{ 
+      originalName: file.name, 
+      newName: newFileName, 
+      size: file.size,
+      url: url
+    }])
+  }
+
+  const handleDeleteFile = (indexToDelete: number) => {
+    setFiles(files.filter((_, index) => index !== indexToDelete))
+  }
+
+  const handleClearAll = () => {
+    setFiles([])
   }
 
   const { getMotionDropzoneProps, getInputProps, isDragActive } = useMotionDropzone(onDrop)
@@ -193,7 +213,23 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <h3 className="text-lg font-semibold mb-4">Preview:</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Preview:</h3>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleClearAll}
+                  className="flex items-center gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Clear All
+                </Button>
+              </motion.div>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {files.map((file, index) => (
                 <motion.div
@@ -213,6 +249,21 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
                           className="rounded-md object-cover w-full h-full"
                           onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
                         />
+                        <motion.div 
+                          className="absolute top-2 right-2"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleDeleteFile(index)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Delete image</span>
+                          </Button>
+                        </motion.div>
                       </div>
                       <p className="text-sm text-muted-foreground truncate mb-1">Original: {file.name}</p>
                       <p className="text-sm font-mono truncate mb-2">New: {generateFileName(file, index)}</p>

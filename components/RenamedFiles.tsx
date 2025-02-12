@@ -2,63 +2,85 @@
 
 import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { FileIcon, ChevronRightIcon } from "lucide-react"
+import { FileIcon, ChevronRightIcon, Trash2 } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
 
 type RenamedFile = {
   originalName: string
   newName: string
+  size: number
+  url?: string
 }
 
-export default function RenamedFiles({ renamedFiles }: { renamedFiles: RenamedFile[] }) {
+export default function RenamedFiles({ 
+  renamedFiles, 
+  onDelete 
+}: { 
+  renamedFiles: RenamedFile[]
+  onDelete: (index: number) => void
+}) {
   const [openItems, setOpenItems] = useState<number[]>([])
 
   const toggleItem = (index: number) => {
     setOpenItems((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]))
   }
 
+  if (renamedFiles.length === 0) return null
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Renamed Files</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {renamedFiles.length > 0 ? (
-          <ul className="space-y-2">
-            {renamedFiles.map((file, index) => (
-              <Collapsible key={index} open={openItems.includes(index)} onOpenChange={() => toggleItem(index)}>
-                <CollapsibleTrigger asChild>
-                  <li className="flex items-center cursor-pointer hover:bg-accent hover:text-accent-foreground p-2 rounded-md transition-colors">
-                    <FileIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm flex-grow">{file.originalName}</span>
-                    <ChevronRightIcon
-                      className={`h-4 w-4 transition-transform duration-200 ${openItems.includes(index) ? "rotate-90" : ""}`}
-                    />
-                  </li>
-                </CollapsibleTrigger>
-                <AnimatePresence>
-                  {openItems.includes(index) && (
-                    <CollapsibleContent asChild forceMount>
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <p className="text-sm pl-6 py-2 text-muted-foreground">New name: {file.newName}</p>
-                      </motion.div>
-                    </CollapsibleContent>
-                  )}
-                </AnimatePresence>
-              </Collapsible>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-muted-foreground">No renamed files yet.</p>
-        )}
-      </CardContent>
-    </Card>
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Recently Renamed Files</h3>
+      <div className="space-y-2">
+        {renamedFiles.map((file, index) => (
+          <motion.div
+            key={index}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, x: -100 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+          >
+            <Card className="p-3 flex items-center space-x-4">
+              {file.url && (
+                <div className="flex-shrink-0">
+                  <Image
+                    src={file.url}
+                    alt={file.newName}
+                    width={48}
+                    height={48}
+                    className="rounded-md object-cover"
+                  />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">
+                  {file.originalName} → {file.newName}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {(file.size / 1024).toFixed(1)} KB
+                </p>
+              </div>
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="h-8 w-8 flex-shrink-0"
+                  onClick={() => onDelete(index)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  <span className="sr-only">Delete file</span>
+                </Button>
+              </motion.div>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </div>
   )
 }
 
