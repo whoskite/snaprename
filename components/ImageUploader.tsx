@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { UploadIcon, DownloadIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { motion, AnimatePresence } from "framer-motion" // Import AnimatePresence
+import { motion, AnimatePresence } from "framer-motion"
 import JSZip from "jszip"
 import Image from "next/image"
 
@@ -19,6 +19,24 @@ type RenamedFile = {
   originalName: string
   newName: string
   size: number
+}
+
+const useMotionDropzone = (onDrop: (acceptedFiles: File[]) => void) => {
+  const dropzone = useDropzone({
+    accept: { "image/*": [] },
+    onDrop
+  })
+
+  const getMotionDropzoneProps = () => ({
+    ...dropzone.getRootProps(),
+    whileHover: { scale: 1.02 },
+    whileTap: { scale: 0.98 }
+  })
+
+  return {
+    ...dropzone,
+    getMotionDropzoneProps,
+  }
 }
 
 export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (files: RenamedFile[]) => void }) {
@@ -94,10 +112,7 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
     onFilesRenamed([{ originalName: file.name, newName: newFileName, size: file.size }])
   }
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: { "image/*": [] },
-  })
+  const { getMotionDropzoneProps, getInputProps, isDragActive } = useMotionDropzone(onDrop)
 
   return (
     <motion.div
@@ -155,10 +170,8 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
         </div>
       </div>
 
-      <motion.div
-        {...getRootProps()}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+      <div
+        {...getMotionDropzoneProps()}
         className={`p-10 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${
           isDragActive ? "border-primary bg-primary/5" : "border-muted hover:border-primary/50"
         }`}
@@ -168,9 +181,9 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
         {isDragActive ? (
           <p className="text-lg">Drop the files here ...</p>
         ) : (
-          <p className="text-lg">Drag 'n' drop some files here, or click to select files</p>
+          <p className="text-lg">Drag &apos;n&apos; drop some files here, or click to select files</p>
         )}
-      </motion.div>
+      </div>
 
       <AnimatePresence>
         {files.length > 0 && (
@@ -225,7 +238,7 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
         <Button
           onClick={(e) => {
             e.preventDefault()
-            handleSubmit(e as unknown as React.FormEvent<HTMLFormElement>)
+            handleSubmit()
           }}
           className="w-full"
           disabled={uploading || files.length === 0 || !customPrefix}
