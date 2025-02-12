@@ -11,6 +11,7 @@ import { UploadIcon, DownloadIcon } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { motion, AnimatePresence } from "framer-motion" // Import AnimatePresence
 import JSZip from "jszip"
+import Image from "next/image"
 
 type NamingPattern = "custom-number" | "custom-sequence" | "custom-only" | "date-filename"
 
@@ -191,9 +192,11 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
                   <Card>
                     <CardContent className="p-4">
                       <div className="aspect-square mb-4 relative">
-                        <img
+                        <Image
                           src={URL.createObjectURL(file) || "/placeholder.svg"}
                           alt={`Preview of ${file.name}`}
+                          width={200}
+                          height={200}
                           className="rounded-md object-cover w-full h-full"
                           onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
                         />
