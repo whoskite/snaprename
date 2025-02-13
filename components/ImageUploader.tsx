@@ -94,7 +94,7 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
       const content = await zip.generateAsync({ type: "blob" })
       const link = document.createElement("a")
       link.href = URL.createObjectURL(content)
-      link.download = "renamed_images.zip"
+      link.download = `${customPrefix}_renamed_images.zip`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
