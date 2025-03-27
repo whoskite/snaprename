@@ -205,6 +205,28 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
         )}
       </div>
 
+      <motion.div whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={(e) => {
+            e.preventDefault()
+            handleSubmit()
+          }}
+          className="w-full"
+          disabled={uploading || files.length === 0 || !customPrefix}
+        >
+          {uploading ? (
+            "Preparing Zip..."
+          ) : files.length === 0 ? (
+            "Select Files"
+          ) : (
+            <>
+              <DownloadIcon className="mr-2 h-4 w-4" />
+              Download All as Zip
+            </>
+          )}
+        </Button>
+      </motion.div>
+
       <AnimatePresence>
         {files.length > 0 && (
           <motion.div
@@ -284,28 +306,6 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
           </motion.div>
         )}
       </AnimatePresence>
-
-      <motion.div whileTap={{ scale: 0.98 }}>
-        <Button
-          onClick={(e) => {
-            e.preventDefault()
-            handleSubmit()
-          }}
-          className="w-full"
-          disabled={uploading || files.length === 0 || !customPrefix}
-        >
-          {uploading ? (
-            "Preparing Zip..."
-          ) : files.length === 0 ? (
-            "Select Files"
-          ) : (
-            <>
-              <DownloadIcon className="mr-2 h-4 w-4" />
-              Download All as Zip
-            </>
-          )}
-        </Button>
-      </motion.div>
     </motion.div>
   )
 }
