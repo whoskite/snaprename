@@ -41,8 +41,8 @@ const useMotionDropzone = (onDrop: (acceptedFiles: File[]) => void) => {
 }
 
 // Constants for file size limits
-const MAX_TOTAL_SIZE_MB = 500 // 500MB total limit
-const MAX_FILE_SIZE_MB = 50 // 50MB per file
+const MAX_TOTAL_SIZE_MB = 100 // 100MB total limit
+const MAX_FILE_SIZE_MB = 20 // 20MB per file
 const WARNING_THRESHOLD = 0.8 // Show warning at 80% of limit
 
 export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (files: RenamedFile[]) => void }) {
