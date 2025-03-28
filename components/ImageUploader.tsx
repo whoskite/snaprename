@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { UploadIcon, DownloadIcon, Trash2 } from "lucide-react"
+import { UploadIcon, DownloadIcon, Trash2, AlertCircle } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { motion, AnimatePresence } from "framer-motion"
 import JSZip from "jszip"
@@ -40,12 +40,30 @@ const useMotionDropzone = (onDrop: (acceptedFiles: File[]) => void) => {
   }
 }
 
+// Constants for file size limits
+const MAX_TOTAL_SIZE_MB = 500 // 500MB total limit
+const MAX_FILE_SIZE_MB = 50 // 50MB per file
+const WARNING_THRESHOLD = 0.8 // Show warning at 80% of limit
+
 export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (files: RenamedFile[]) => void }) {
   const [files, setFiles] = useState<File[]>([])
   const [customPrefix, setCustomPrefix] = useState("")
+  const [zipFolderName, setZipFolderName] = useState("SnapRename")
   const [namingPattern, setNamingPattern] = useState<NamingPattern>("custom-number")
   const [uploading, setUploading] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
+
+  // Calculate total size
+  const totalSizeMB = files.reduce((acc, file) => acc + file.size / (1024 * 1024), 0)
+  const isApproachingLimit = totalSizeMB > MAX_TOTAL_SIZE_MB * WARNING_THRESHOLD
+  const isAtLimit = totalSizeMB >= MAX_TOTAL_SIZE_MB
+
+  const formatFileSize = (sizeInBytes: number) => {
+    if (sizeInBytes < 1024 * 1024) {
+      return `${(sizeInBytes / 1024).toFixed(1)} KB`
+    }
+    return `${(sizeInBytes / (1024 * 1024)).toFixed(1)} MB`
+  }
 
   const generateFileName = (file: File, index: number) => {
     const extension = file.name.split(".").pop()
@@ -69,8 +87,24 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
   }
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles((prevFiles) => [...prevFiles, ...acceptedFiles])
-  }, [])
+    const validFiles = acceptedFiles.filter(file => {
+      const fileSizeMB = file.size / (1024 * 1024)
+      return fileSizeMB <= MAX_FILE_SIZE_MB
+    })
+
+    const newTotalSize = [...files, ...validFiles].reduce((acc, file) => acc + file.size / (1024 * 1024), 0)
+    
+    if (newTotalSize > MAX_TOTAL_SIZE_MB) {
+      alert(`Total file size cannot exceed ${MAX_TOTAL_SIZE_MB}MB`)
+      return
+    }
+
+    if (validFiles.length < acceptedFiles.length) {
+      alert(`Some files were skipped. Maximum file size is ${MAX_FILE_SIZE_MB}MB per file.`)
+    }
+
+    setFiles((prevFiles) => [...prevFiles, ...validFiles])
+  }, [files])
 
   const handleSubmit = async () => {
     if (files.length === 0 || !customPrefix) return
@@ -190,6 +224,55 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
         </div>
       </div>
 
+      <div className="relative">
+        <label htmlFor="zipFolderName" className="block text-sm font-medium mb-1">
+          Zip Folder Name (optional)
+        </label>
+        <motion.div whileHover={{ scale: 1.02 }} transition={{ duration: 0.2 }}>
+          <Input
+            id="zipFolderName"
+            type="text"
+            value={zipFolderName}
+            onChange={(e) => setZipFolderName(e.target.value.trim())}
+            placeholder="Enter folder name (defaults to SnapRename)"
+            className="transition-colors duration-200 hover:border-primary"
+          />
+        </motion.div>
+      </div>
+
+      {files.length > 0 && (
+        <div className={`rounded-lg p-4 ${
+          isAtLimit ? 'bg-destructive/10' : 
+          isApproachingLimit ? 'bg-warning/10' : 
+          'bg-muted'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Total Size: {formatFileSize(files.reduce((acc, file) => acc + file.size, 0))}</span>
+              <span className="text-sm text-muted-foreground">/ {MAX_TOTAL_SIZE_MB}MB</span>
+            </div>
+            {(isApproachingLimit || isAtLimit) && (
+              <div className="flex items-center gap-2 text-sm">
+                <AlertCircle className="h-4 w-4 text-warning" />
+                <span className={isAtLimit ? "text-destructive" : "text-warning"}>
+                  {isAtLimit ? "Storage limit reached" : "Approaching storage limit"}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="mt-2 h-1.5 w-full rounded-full bg-muted">
+            <div 
+              className={`h-full rounded-full transition-all ${
+                isAtLimit ? 'bg-destructive' : 
+                isApproachingLimit ? 'bg-warning' : 
+                'bg-primary'
+              }`}
+              style={{ width: `${Math.min((totalSizeMB / MAX_TOTAL_SIZE_MB) * 100, 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <div
         {...getMotionDropzoneProps()}
         className={`p-10 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${
@@ -204,28 +287,6 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
           <p className="text-lg">Drag &apos;n&apos; drop some files here, or click to select files</p>
         )}
       </div>
-
-      <motion.div whileTap={{ scale: 0.98 }}>
-        <Button
-          onClick={(e) => {
-            e.preventDefault()
-            handleSubmit()
-          }}
-          className="w-full"
-          disabled={uploading || files.length === 0 || !customPrefix}
-        >
-          {uploading ? (
-            "Preparing Zip..."
-          ) : files.length === 0 ? (
-            "Select Files"
-          ) : (
-            <>
-              <DownloadIcon className="mr-2 h-4 w-4" />
-              Download All as Zip
-            </>
-          )}
-        </Button>
-      </motion.div>
 
       <AnimatePresence>
         {files.length > 0 && (
@@ -306,6 +367,28 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
           </motion.div>
         )}
       </AnimatePresence>
+
+      <motion.div whileTap={{ scale: 0.98 }}>
+        <Button
+          onClick={(e) => {
+            e.preventDefault()
+            handleSubmit()
+          }}
+          className="w-full"
+          disabled={uploading || files.length === 0 || !customPrefix}
+        >
+          {uploading ? (
+            "Preparing Zip..."
+          ) : files.length === 0 ? (
+            "Select Files"
+          ) : (
+            <>
+              <DownloadIcon className="mr-2 h-4 w-4" />
+              Download All as Zip
+            </>
+          )}
+        </Button>
+      </motion.div>
     </motion.div>
   )
 }
