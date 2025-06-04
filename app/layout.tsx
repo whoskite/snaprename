@@ -16,14 +16,18 @@ export const metadata: Metadata = {
   openGraph: {
     title: "SnapRename: Bulk Image Wizard",
     description: "Easily rename and organize your images in bulk",
+    url: "/",
+    siteName: "SnapRename",
     images: [
       {
         url: "/Social%20Sharing%20Image.png",
         width: 1200,
         height: 630,
         alt: "SnapRename - Bulk rename and download images",
+        type: "image/png",
       },
     ],
+    locale: "en_US",
     type: "website",
   },
   twitter: {
@@ -31,7 +35,22 @@ export const metadata: Metadata = {
     title: "SnapRename: Bulk Image Wizard",
     description: "Easily rename and organize your images in bulk",
     images: ["/Social%20Sharing%20Image.png"],
+    creator: "@tomykite",
+    site: "@tomykite",
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  authors: [{ name: "SnapRename Team" }],
+  keywords: ["bulk rename", "image organizer", "file management", "batch rename", "image tool"],
 }
 
 export default function RootLayout({
