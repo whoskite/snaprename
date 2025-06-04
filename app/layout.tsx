@@ -8,13 +8,17 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 export const metadata: Metadata = {
   title: "SnapRename: Bulk Image Wizard",
   description: "Easily rename and organize your images in bulk",
-  metadataBase: new URL('https://snaprename.com'), // Update this to your actual domain
+  metadataBase: new URL(
+    process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000'
+  ),
   openGraph: {
     title: "SnapRename: Bulk Image Wizard",
     description: "Easily rename and organize your images in bulk",
     images: [
       {
-        url: "/Social Sharing Image.png",
+        url: "/Social%20Sharing%20Image.png",
         width: 1200,
         height: 630,
         alt: "SnapRename - Bulk rename and download images",
@@ -26,7 +30,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "SnapRename: Bulk Image Wizard",
     description: "Easily rename and organize your images in bulk",
-    images: ["/Social Sharing Image.png"],
+    images: ["/Social%20Sharing%20Image.png"],
   },
 }
 
