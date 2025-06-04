@@ -6,7 +6,7 @@ import { Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { motion } from "framer-motion"
-import { FarcasterIcon } from "@/components/icons/FarcasterIcon"
+import { TwitterIcon } from "@/components/icons/TwitterIcon"
 import { useState } from "react"
 import { ProfilePopover } from "@/components/ProfilePopover"
 
@@ -23,7 +23,7 @@ const iconAnimation = {
   tap: { scale: 0.95 }
 }
 
-const farcasterAnimation = {
+const twitterAnimation = {
   initial: { 
     scale: 1,
   },
@@ -43,7 +43,7 @@ const iconColorAnimation = {
     fill: "var(--icon-color)",
   },
   hover: { 
-    fill: "#5C3A9D",
+    fill: "#1DA1F2",
     transition: {
       duration: 0.2
     }
@@ -104,22 +104,22 @@ export function Navbar() {
                 initial="initial"
                 whileHover="hover"
                 whileTap="tap"
-                variants={farcasterAnimation}
+                variants={twitterAnimation}
                 className="relative"
                 onHoverStart={() => setShowProfile(true)}
                 onHoverEnd={() => setShowProfile(false)}
               >
                 <Button variant="ghost" size="icon" asChild className="rounded-none">
-                  <Link href="https://warpcast.com/kite" target="_blank" rel="noreferrer">
+                  <Link href="https://x.com/tomykite" target="_blank" rel="noreferrer">
                     <motion.div
                       initial="initial"
                       animate="initial"
                       whileHover="hover"
                       variants={iconColorAnimation}
                     >
-                      <FarcasterIcon className="h-4 w-4" />
+                      <TwitterIcon className="h-4 w-4" />
                     </motion.div>
-                    <span className="sr-only">Farcaster</span>
+                    <span className="sr-only">X (Twitter)</span>
                   </Link>
                 </Button>
                 <ProfilePopover isVisible={showProfile} />

@@ -25,8 +25,8 @@ export function ProfilePopover({ isVisible }: { isVisible: boolean }) {
               priority
             />
             <div className="mt-1 text-center">
-              <p className="font-medium text-sm">@kite</p>
-              <p className="text-xs text-muted-foreground">Farcaster</p>
+              <p className="font-medium text-sm">@tomykite</p>
+              <p className="text-xs text-muted-foreground">X</p>
             </div>
           </motion.div>
         </motion.div>
