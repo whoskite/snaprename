@@ -13,18 +13,29 @@ type RenamedFile = {
   url?: string
 }
 
-export default function RenamedFiles({ 
-  renamedFiles, 
-  onDelete 
-}: { 
+export default function RenamedFiles({
+  renamedFiles,
+  onDelete,
+  onUndo,
+  canUndo
+}: {
   renamedFiles: RenamedFile[]
   onDelete: (index: number) => void
+  onUndo?: () => void
+  canUndo?: boolean
 }) {
   if (renamedFiles.length === 0) return null
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Recently Renamed Files</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Recently Renamed Files</h3>
+        {onUndo && canUndo && (
+          <Button variant="outline" size="sm" onClick={onUndo}>
+            Undo
+          </Button>
+        )}
+      </div>
       <div className="space-y-2">
         {renamedFiles.map((file, index) => (
           <motion.div

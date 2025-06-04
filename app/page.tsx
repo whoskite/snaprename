@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import ImageUploader from "@/components/ImageUploader"
 import RenamedFiles from "@/components/RenamedFiles"
 import { ArrowDownIcon } from "lucide-react"
@@ -14,13 +14,42 @@ type RenamedFile = {
 
 export default function Home() {
   const [renamedFiles, setRenamedFiles] = useState<RenamedFile[]>([])
+  const [history, setHistory] = useState<RenamedFile[][]>([])
+
+  useEffect(() => {
+    const saved = localStorage.getItem("renamedFiles")
+    if (saved) {
+      try {
+        setRenamedFiles(JSON.parse(saved))
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem("renamedFiles", JSON.stringify(renamedFiles))
+  }, [renamedFiles])
 
   const handleFilesRenamed = (newFiles: RenamedFile[]) => {
+    setHistory((h) => [...h, renamedFiles])
     setRenamedFiles((prevFiles) => [...prevFiles, ...newFiles])
   }
 
   const handleDeleteRenamedFile = (index: number) => {
+    setHistory((h) => [...h, renamedFiles])
     setRenamedFiles((prevFiles) => prevFiles.filter((_, i) => i !== index))
+  }
+
+  const handleUndo = () => {
+    setHistory((hist) => {
+      const last = hist[hist.length - 1]
+      if (last) {
+        setRenamedFiles(last)
+        return hist.slice(0, hist.length - 1)
+      }
+      return hist
+    })
   }
 
   return (
@@ -38,9 +67,11 @@ export default function Home() {
           <div className="flex items-center justify-center my-8">
             <ArrowDownIcon className="h-8 w-8 text-muted-foreground animate-bounce" />
           </div>
-          <RenamedFiles 
-            renamedFiles={renamedFiles} 
+          <RenamedFiles
+            renamedFiles={renamedFiles}
             onDelete={handleDeleteRenamedFile}
+            onUndo={handleUndo}
+            canUndo={history.length > 0}
           />
         </div>
       </div>
