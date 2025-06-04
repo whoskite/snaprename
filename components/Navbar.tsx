@@ -2,26 +2,12 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/ThemeToggle"
 import { motion } from "framer-motion"
 import { TwitterIcon } from "@/components/icons/TwitterIcon"
 import { useState } from "react"
 import { ProfilePopover } from "@/components/ProfilePopover"
-
-const iconAnimation = {
-  initial: { scale: 1 },
-  hover: { 
-    scale: 1.1,
-    transition: {
-      type: "spring",
-      stiffness: 400,
-      damping: 10
-    }
-  },
-  tap: { scale: 0.95 }
-}
 
 const twitterAnimation = {
   initial: { 
@@ -89,27 +75,12 @@ export function Navbar() {
                 initial="initial"
                 whileHover="hover"
                 whileTap="tap"
-                variants={iconAnimation}
-                className="relative"
-              >
-                <Button variant="ghost" size="icon" asChild className="rounded-r-none">
-                  <Link href="https://github.com/whoskite/snaprename" target="_blank" rel="noreferrer">
-                    <Github className="h-4 w-4" />
-                    <span className="sr-only">GitHub</span>
-                  </Link>
-                </Button>
-              </motion.div>
-
-              <motion.div
-                initial="initial"
-                whileHover="hover"
-                whileTap="tap"
                 variants={twitterAnimation}
                 className="relative"
                 onHoverStart={() => setShowProfile(true)}
                 onHoverEnd={() => setShowProfile(false)}
               >
-                <Button variant="ghost" size="icon" asChild className="rounded-none">
+                <Button variant="ghost" size="icon" asChild className="rounded-r-none">
                   <Link href="https://x.com/tomykite" target="_blank" rel="noreferrer">
                     <motion.div
                       initial="initial"
