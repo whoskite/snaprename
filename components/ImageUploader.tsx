@@ -52,6 +52,10 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
   const [namingPattern, setNamingPattern] = useState<NamingPattern>("custom-number")
   const [uploading, setUploading] = useState(false)
   const [showTooltip, setShowTooltip] = useState(false)
+  const [enableCompression, setEnableCompression] = useState(false)
+  const [quality, setQuality] = useState(80)
+  const [enableResize, setEnableResize] = useState(false)
+  const [maxDimension, setMaxDimension] = useState(1024)
 
   // Calculate total size
   const totalSizeMB = files.reduce((acc, file) => acc + file.size / (1024 * 1024), 0)
@@ -86,6 +90,39 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
     }
   }
 
+  const processImage = async (file: File): Promise<Blob> => {
+    if (!enableCompression && !enableResize) return file
+    return new Promise((resolve) => {
+      const img = new Image()
+      img.onload = () => {
+        let width = img.width
+        let height = img.height
+        if (enableResize && maxDimension > 0) {
+          if (width > height && width > maxDimension) {
+            height = (maxDimension / width) * height
+            width = maxDimension
+          } else if (height >= width && height > maxDimension) {
+            width = (maxDimension / height) * width
+            height = maxDimension
+          }
+        }
+        const canvas = document.createElement("canvas")
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return resolve(file)
+        ctx.drawImage(img, 0, 0, width, height)
+        const type = file.type || "image/jpeg"
+        const q = enableCompression ? quality / 100 : 1
+        canvas.toBlob((blob) => {
+          resolve(blob || file)
+        }, type, q)
+      }
+      img.onerror = () => resolve(file)
+      img.src = URL.createObjectURL(file)
+    })
+  }
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const validFiles = acceptedFiles.filter(file => {
       const fileSizeMB = file.size / (1024 * 1024)
@@ -113,16 +150,18 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
     const zip = new JSZip()
     const renamedFiles: RenamedFile[] = []
 
-    files.forEach((file, index) => {
-      const newFileName = generateFileName(file, index)
-      zip.file(newFileName, file)
-      renamedFiles.push({ 
-        originalName: file.name, 
-        newName: newFileName, 
-        size: file.size,
-        url: URL.createObjectURL(file)
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const newFileName = generateFileName(file, i)
+      const processed = await processImage(file)
+      zip.file(newFileName, processed)
+      renamedFiles.push({
+        originalName: file.name,
+        newName: newFileName,
+        size: processed.size,
+        url: URL.createObjectURL(processed)
       })
-    })
+    }
 
     try {
       const content = await zip.generateAsync({ type: "blob" })
@@ -140,22 +179,25 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
     }
   }
 
-  const handleSingleDownload = (file: File, index: number) => {
+  const handleSingleDownload = async (file: File, index: number) => {
     const newFileName = generateFileName(file, index)
-    const url = URL.createObjectURL(file)
+    const processed = await processImage(file)
+    const url = URL.createObjectURL(processed)
     const link = document.createElement("a")
     link.href = url
     link.download = newFileName
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    
-    onFilesRenamed([{ 
-      originalName: file.name, 
-      newName: newFileName, 
-      size: file.size,
-      url: url
-    }])
+
+    onFilesRenamed([
+      {
+        originalName: file.name,
+        newName: newFileName,
+        size: processed.size,
+        url: url
+      }
+    ])
   }
 
   const handleDeleteFile = (indexToDelete: number) => {
@@ -238,6 +280,63 @@ export default function ImageUploader({ onFilesRenamed }: { onFilesRenamed: (fil
             className="transition-colors duration-200 hover:border-primary"
           />
         </motion.div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex items-center space-x-2">
+          <input
+            id="enableCompression"
+            type="checkbox"
+            className="h-4 w-4"
+            checked={enableCompression}
+            onChange={(e) => setEnableCompression(e.target.checked)}
+          />
+          <label htmlFor="enableCompression" className="text-sm font-medium">
+            Compress Images
+          </label>
+        </div>
+        {enableCompression && (
+          <div>
+            <label htmlFor="quality" className="block text-sm font-medium mb-1">
+              Quality ({quality}%)
+            </label>
+            <input
+              id="quality"
+              type="range"
+              min={50}
+              max={100}
+              value={quality}
+              onChange={(e) => setQuality(Number(e.target.value))}
+              className="w-full"
+            />
+          </div>
+        )}
+        <div className="flex items-center space-x-2">
+          <input
+            id="enableResize"
+            type="checkbox"
+            className="h-4 w-4"
+            checked={enableResize}
+            onChange={(e) => setEnableResize(e.target.checked)}
+          />
+          <label htmlFor="enableResize" className="text-sm font-medium">
+            Resize Images
+          </label>
+        </div>
+        {enableResize && (
+          <div>
+            <label htmlFor="maxDimension" className="block text-sm font-medium mb-1">
+              Max Dimension (px)
+            </label>
+            <Input
+              id="maxDimension"
+              type="number"
+              min={1}
+              value={maxDimension}
+              onChange={(e) => setMaxDimension(Number(e.target.value))}
+            />
+          </div>
+        )}
       </div>
 
       {files.length > 0 && (
